@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--n_cpu", type=int, default=16, help="number of cpu threads to use during batch generation")
+parser.add_argument("--n_cpu", type=int, default=4, help="number of cpu threads to use during batch generation")
 parser.add_argument("--latent_dim", type=int, default=128, help="dimensionality of the latent space")
 parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
@@ -37,7 +37,7 @@ parser.add_argument("--exp_folder", type=str, default='exp', help="destination f
 opt = parser.parse_args()
 print(opt)
 
-numb_iters = 200000
+numb_iters = 200
 exp_name = 'exp_with_graph_global_new'
 target_set = 'D'
 phase='eval'
@@ -73,8 +73,8 @@ def draw_graph(g_true):
 
     nx.draw(G_true, pos, node_size=1000, node_color=colors_H, font_size=0, font_weight='bold', edges=edges, edge_color=colors, width=weights)
     plt.tight_layout()
-    plt.savefig('./dump/_true_graph.jpg', format="jpg")
-    rgb_im = Image.open('./dump/_true_graph.jpg')
+    plt.savefig('./dump/_true_graph.png', format="png")
+    rgb_im = Image.open('./dump/_true_graph.png')
     rgb_arr = pad_im(rgb_im).convert('RGBA')
     return rgb_arr
 
@@ -171,13 +171,17 @@ os.makedirs(opt.exp_folder, exist_ok=True)
 
 # Initialize generator and discriminator
 generator = Generator()
-generator.load_state_dict(torch.load(checkpoint))
+if torch.cuda.is_available() :
+    generator.load_state_dict(torch.load(checkpoint))
+else: 
+    generator.load_state_dict(torch.load(checkpoint, map_location=torch.device('cpu')))
 
 # Initialize variables
 cuda = True if torch.cuda.is_available() else False
 if cuda:
     generator.cuda()
-rooms_path = '/local-scratch4/nnauata/autodesk/FloorplanDataset/'
+# rooms_path = '/local-scratch4/nnauata/autodesk/FloorplanDataset/'
+rooms_path = '/Users/apple/Documents/caad/repos/housegan/house_gan_data/dataset_paper/'
 
 # Initialize dataset iterator
 fp_dataset_test = FloorplanGraphDataset(rooms_path, transforms.Normalize(mean=[0.5], std=[0.5]), target_set=target_set, split=phase)
@@ -192,7 +196,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 # ------------
 globalIndex = 0
 final_images = []
-target_graph = list(range(500))
+target_graph = list(range(40))
 page_count = 0
 n_rows = 0
 for i, batch in enumerate(fp_loader):
@@ -239,14 +243,14 @@ for i, batch in enumerate(fp_loader):
     if (n_rows+1)%12 == 0: 
         final_images_new = []
         for im in final_images:
-            print(np.array(im).shape)
+            # print(np.array(im).shape)
             final_images_new.append(torch.tensor(np.array(im).transpose((2, 0, 1)))/255.0)
 
-        # print('final: ', final_images_new[0].shape)
+        print('final: ', final_images_new[0].shape)
         final_images = final_images_new
         final_images = torch.stack(final_images)
-        print(final_images)
-        save_image(final_images, "./output/results_page_{}_{}.png".format(target_set, page_count), nrow=2*opt.num_variations+1, padding=2, range=(0, 1), pad_value=0.5, normalize=False)
+        # print(final_images)
+        save_image(final_images[0], "./output/results_page_{}_{}.png".format(target_set, page_count), nrow=2*opt.num_variations+1, padding=2, range=(0, 1), pad_value=0.5, normalize=False)
         page_count += 1
         n_rows = 0
         final_images = []
