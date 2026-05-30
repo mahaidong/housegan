@@ -36,6 +36,8 @@ parser.add_argument("--target_set", type=str, default='A', help="which split to 
 opt = parser.parse_args()
 
 cuda = True if torch.cuda.is_available() else False
+# cuda = False
+
 lambda_gp = 10
 multi_gpu = True
 # exp_folder = "{}_{}_g_lr_{}_d_lr_{}_bs_{}_ims_{}_ld_{}_b1_{}_b2_{}".format(opt.exp_folder, opt.target_set, opt.g_lr, opt.d_lr, \
@@ -100,6 +102,11 @@ def graph_scatter(inputs, device_ids, indices):
 
 def data_parallel(module, _input, indices):
     device_ids = list(range(torch.cuda.device_count()))
+
+    # Single GPU: do not use PyTorch parallel/NCCL
+    if len(device_ids) <= 1:
+        return module(*_input)
+
     output_device = device_ids[0]
     replicas = nn.parallel.replicate(module, device_ids)
     inputs = graph_scatter(_input, device_ids, indices)
@@ -139,7 +146,9 @@ def visualizeSingleBatch(fp_loader_test, opt):
     return
 
 # Configure data loader
-rooms_path = '/home/nelson/Workspace/autodesk/housegan/'
+# rooms_path = '/home/nelson/Workspace/autodesk/housegan/'
+rooms_path = './test_train_data_101/'
+
 fp_dataset_train = FloorplanGraphDataset(rooms_path, transforms.Normalize(mean=[0.5], std=[0.5]), target_set=opt.target_set)
 fp_loader = torch.utils.data.DataLoader(fp_dataset_train, 
                                         batch_size=opt.batch_size, 
