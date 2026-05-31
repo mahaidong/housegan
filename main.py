@@ -40,9 +40,11 @@ cuda = True if torch.cuda.is_available() else False
 
 lambda_gp = 10
 multi_gpu = True
+
 # exp_folder = "{}_{}_g_lr_{}_d_lr_{}_bs_{}_ims_{}_ld_{}_b1_{}_b2_{}".format(opt.exp_folder, opt.target_set, opt.g_lr, opt.d_lr, \
 #                                                                         opt.batch_size, opt.img_size, \
 #                                                                         opt.latent_dim, opt.b1, opt.b2)
+
 exp_folder = "{}_{}".format(opt.exp_folder, opt.target_set)
 os.makedirs("./exps/"+exp_folder, exist_ok=True)
 os.makedirs("./checkpoints/", exist_ok=True)
@@ -282,4 +284,4 @@ for epoch in range(opt.n_epochs):
                 torch.save(generator.state_dict(), './checkpoints/{}_{}.pth'.format(exp_folder, batches_done))
                 visualizeSingleBatch(fp_loader_test, opt)
             batches_done += opt.n_critic
-            
+

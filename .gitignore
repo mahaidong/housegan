@@ -2,7 +2,10 @@
 housegan_venv
 dump
 output
+out
 exp
 exps
 __pycache__
 test_train_data_101
+checkpoints
+temp

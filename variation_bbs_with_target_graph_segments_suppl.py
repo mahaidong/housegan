@@ -49,6 +49,7 @@ target_set = 'D'
 phase='eval'
 checkpoint = './2018_house_gan_data/{}_{}_{}.pth'.format(exp_name, target_set, numb_iters)
 
+
 os.makedirs("./dump/", exist_ok=True)
 os.makedirs("./output/", exist_ok=True)
 
