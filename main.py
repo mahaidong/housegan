@@ -60,10 +60,6 @@ discriminator = Discriminator()
 if cuda:
     generator.cuda()
     discriminator.cuda()
-
-if cuda:
-    generator.cuda()
-    discriminator.cuda()
     adversarial_loss.cuda()
 
 # Support to multiple GPUs

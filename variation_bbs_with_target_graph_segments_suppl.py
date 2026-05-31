@@ -189,20 +189,15 @@ cuda = True if torch.cuda.is_available() else False
 if cuda:
     generator.cuda()
 
-# # Initialize generator and discriminator
-# generator = Generator()
-# generator.load_state_dict(torch.load(checkpoint, map_location=torch.device('cpu')))
-# cuda = None
-
-
+#### load data ###################################################
 # rooms_path = '/local-scratch4/nnauata/autodesk/FloorplanDataset/'
 rooms_path = './2018_house_gan_data/dataset_paper/'
-
-# Initialize dataset iterator
+# Initialize dataset iterator,  got nds + eds 
 fp_dataset_test = FloorplanGraphDataset(rooms_path, transforms.Normalize(mean=[0.5], std=[0.5]), target_set=target_set, split=phase)
 fp_loader = torch.utils.data.DataLoader(fp_dataset_test, 
                                         batch_size=opt.batch_size, 
                                         shuffle=False, collate_fn=floorplan_collate_fn)
+
 # Optimizers
 Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
@@ -261,14 +256,13 @@ for i, batch in enumerate(fp_loader):
             # print(np.array(im).shape)
             final_images_new.append(torch.tensor(np.array(im).transpose((2, 0, 1)))/255.0)
 
-        print('final: ', final_images_new[0].shape)
-
+        # print('final: ', final_images_new[0].shape)
         final_images = final_images_new
         final_images = torch.stack(final_images)
 
-        print(final_images)
-
-        save_image(final_images[0], "./output/results_page_{}_{}.png".format(target_set, page_count), nrow=2*opt.num_variations+1, padding=2, range=(0, 1), pad_value=0.5, normalize=False)
+        # print(final_images)
+        # save_image(final_images[0], "./output/results_page_{}_{}.png".format(target_set, page_count), nrow=2*opt.num_variations+1, padding=2, range=(0, 1), pad_value=0.5, normalize=False)
+        save_image(final_images, "./output/results_page_{}_{}.png".format(target_set, page_count), nrow=2*opt.num_variations+1, padding=2, range=(0, 1), pad_value=0.5, normalize=False)
         page_count += 1
         n_rows = 0
         final_images = []
